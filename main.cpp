@@ -30,19 +30,23 @@ int logowanie(vector <Uzytkownik> uzytkownicy);
 
 vector<Kontakt> dodawanieKontaktu(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika);
 
-void wyszukajKontaktPoImieniu(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika);
+void wyszukajKontaktPoImieniu(vector<Kontakt> kontaktyKonkretnegoId);
 
-void wyszukajKontaktPoNazwisku(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika);
+void wyszukajKontaktPoNazwisku(vector<Kontakt> kontaktyKonkretnegoId);
 
-void wyswietlKontakty (vector<Kontakt> kontakty, int idZalogowanegoUzytkownika);
+void wyswietlKontakty (vector<Kontakt> kontaktyKonkretnegoId);
 
-vector<Kontakt> wczytajDane(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika);
+vector<Kontakt> wczytajDane(vector<Kontakt> kontakty);
 
-bool czyTakiIdistnieje(vector<Kontakt> kontakty, int idDoUsuniecia, int idZalogowanegoUzytkownika);
+bool czyTakiIdistnieje(vector<Kontakt> kontaktyKonkretnegoId, int idDoUsuniecia);
 
-vector<Kontakt> usunKontakt(vector<Kontakt> kontakty, int idDoUsuniecia, int idZalogowanegoUzytkownika);
+vector<Kontakt> usunKontakt(vector<Kontakt> kontaktyKonkretnegoId, int idDoUsuniecia);
 
-vector<Kontakt> edytujKontakty(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika);
+vector<Kontakt> edytujKontakty(vector<Kontakt> kontaktyKonkretnegoId);
+
+vector<Kontakt> wczytajkontaktyKonkretnegoId (vector<Kontakt> kontakty, int idZalogowanegoUzytkownika);
+
+void aktualizacjaKsiazki(vector<Kontakt> kontaktyKonkretnegoId, int idZalogowanegoUzytkownika, vector<Kontakt> kontakty);
 
 
 int main()
@@ -60,14 +64,14 @@ int main()
             fstream Plik;
             Plik.open("uzytkownicy.txt", ios::in);
 
-            if (Plik.good()==false)
+            if (Plik.good() == false)
             {
                 cout << "KSIAZKA ADRESOWA" << endl;
                 cout << "----------------" << endl;
                 cout << "Plik do odczytu nie istnieje. Utworz nowego uzytkownika."<<endl;
                 system("pause");
             }
-             else
+
             {
                 uzytkownicy = wczytajUzytkownikow(uzytkownicy);
             }
@@ -97,6 +101,8 @@ int main()
         else
         {
             vector<Kontakt> kontakty;
+            vector<Kontakt> kontaktyKonkretnegoId;
+
             fstream plik;
             int idDoUsuniecia;
 
@@ -110,11 +116,7 @@ int main()
                 cout << "Plik do odczytu nie istnieje. Utworz nowy kontakt."<<endl;
                 system("pause");
             }
-
-            else
-            {
-                kontakty = wczytajDane(kontakty, idZalogowanegoUzytkownika);
-            }
+            plik.close();
 
             char wybor;
             while(1)
@@ -133,29 +135,42 @@ int main()
 
                 if (wybor == '1')
                 {
+                    kontakty = wczytajDane(kontakty);
                     kontakty = dodawanieKontaktu(kontakty, idZalogowanegoUzytkownika);
                 }
                 if (wybor == '2')
                 {
-                    wyszukajKontaktPoImieniu(kontakty, idZalogowanegoUzytkownika);
+                    kontaktyKonkretnegoId = wczytajkontaktyKonkretnegoId(kontakty, idZalogowanegoUzytkownika);
+                    wyszukajKontaktPoImieniu(kontaktyKonkretnegoId);
                 }
                 if (wybor == '3')
                 {
-                    wyszukajKontaktPoNazwisku(kontakty, idZalogowanegoUzytkownika);
+                    kontaktyKonkretnegoId = wczytajkontaktyKonkretnegoId(kontakty, idZalogowanegoUzytkownika);
+                    wyszukajKontaktPoNazwisku(kontaktyKonkretnegoId);
                 }
                 if (wybor == '4')
                 {
-                    wyswietlKontakty(kontakty, idZalogowanegoUzytkownika);
+                    kontaktyKonkretnegoId = wczytajkontaktyKonkretnegoId(kontakty, idZalogowanegoUzytkownika);
+                    wyswietlKontakty(kontaktyKonkretnegoId);
                 }
                 if (wybor == '5')
                 {
+                    kontaktyKonkretnegoId = wczytajkontaktyKonkretnegoId(kontakty, idZalogowanegoUzytkownika);
                     cout << "Podaj nr id kontaktu do usuniecia: " << endl;
                     cin >> idDoUsuniecia;
-                    kontakty = usunKontakt(kontakty, idDoUsuniecia, idZalogowanegoUzytkownika);
+                    if(!cin)
+                    {
+                        cin.clear();
+                        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+                    kontaktyKonkretnegoId = usunKontakt(kontaktyKonkretnegoId, idDoUsuniecia);
+                    aktualizacjaKsiazki(kontaktyKonkretnegoId, idZalogowanegoUzytkownika, kontakty);
                 }
                 if (wybor == '6')
                 {
-                    kontakty = edytujKontakty(kontakty, idZalogowanegoUzytkownika);
+                    kontaktyKonkretnegoId = wczytajkontaktyKonkretnegoId(kontakty, idZalogowanegoUzytkownika);
+                    kontaktyKonkretnegoId = edytujKontakty(kontaktyKonkretnegoId);
+                    aktualizacjaKsiazki(kontaktyKonkretnegoId, idZalogowanegoUzytkownika, kontakty);
                 }
                 if (wybor == '9')
                 {
@@ -405,10 +420,10 @@ vector<Kontakt> dodawanieKontaktu(vector<Kontakt> kontakty, int idZalogowanegoUz
 }
 
 
-void wyszukajKontaktPoImieniu(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika)
+void wyszukajKontaktPoImieniu(vector<Kontakt> kontaktyKonkretnegoId)
 {
     string imie;
-    int numerKontaktu = kontakty.size();
+    int numerKontaktu = kontaktyKonkretnegoId.size();
     int pom = 1;
 
     system("cls");
@@ -418,15 +433,15 @@ void wyszukajKontaktPoImieniu(vector<Kontakt> kontakty, int idZalogowanegoUzytko
 
     for (int i=0; i < numerKontaktu; i++)
     {
-        if (kontakty[i].imie == imie && kontakty[i].iduzytkownika == idZalogowanegoUzytkownika)
+        if (kontaktyKonkretnegoId[i].imie == imie)
         {
             cout << pom << ". ";
-            cout << kontakty[i].imie;
-            cout << " " << kontakty[i].nazwisko << endl;
-            cout << kontakty[i].telefon << endl;
-            cout << kontakty[i].email << endl;
-            cout << kontakty[i].adres << endl;
-            cout << kontakty[i].idKontaktu << endl;
+            cout << kontaktyKonkretnegoId[i].imie;
+            cout << " " << kontaktyKonkretnegoId[i].nazwisko << endl;
+            cout << kontaktyKonkretnegoId[i].telefon << endl;
+            cout << kontaktyKonkretnegoId[i].email << endl;
+            cout << kontaktyKonkretnegoId[i].adres << endl;
+            cout << kontaktyKonkretnegoId[i].idKontaktu << endl;
             pom++;
         }
         //else if () cout << "Brak kontaktu o takim imieniu." << endl;
@@ -436,10 +451,10 @@ void wyszukajKontaktPoImieniu(vector<Kontakt> kontakty, int idZalogowanegoUzytko
 }
 
 
-void wyszukajKontaktPoNazwisku(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika)
+void wyszukajKontaktPoNazwisku(vector<Kontakt> kontaktyKonkretnegoId)
 {
     string nazwisko;
-    int numerKontaktu = kontakty.size();
+    int numerKontaktu = kontaktyKonkretnegoId.size();
     int pom = 1;
 
     system("cls");
@@ -449,15 +464,15 @@ void wyszukajKontaktPoNazwisku(vector<Kontakt> kontakty, int idZalogowanegoUzytk
 
     for (int i=0; i < numerKontaktu; i++)
     {
-        if (kontakty[i].nazwisko == nazwisko && kontakty[i].iduzytkownika == idZalogowanegoUzytkownika)
+        if (kontaktyKonkretnegoId[i].nazwisko == nazwisko)
         {
             cout << pom << ". ";
-            cout << kontakty[i].imie;
-            cout << " " << kontakty[i].nazwisko << endl;
-            cout << kontakty[i].telefon << endl;
-            cout << kontakty[i].email << endl;
-            cout << kontakty[i].adres << endl;
-            cout << kontakty[i].idKontaktu << endl;
+            cout << kontaktyKonkretnegoId[i].imie;
+            cout << " " << kontaktyKonkretnegoId[i].nazwisko << endl;
+            cout << kontaktyKonkretnegoId[i].telefon << endl;
+            cout << kontaktyKonkretnegoId[i].email << endl;
+            cout << kontaktyKonkretnegoId[i].adres << endl;
+            cout << kontaktyKonkretnegoId[i].idKontaktu << endl;
             pom++;
         }
         //else cout << "Brak kontaktu o takim nazwisku." << endl;
@@ -466,25 +481,22 @@ void wyszukajKontaktPoNazwisku(vector<Kontakt> kontakty, int idZalogowanegoUzytk
 }
 
 
-void wyswietlKontakty (vector<Kontakt> kontakty, int idZalogowanegoUzytkownika)
+void wyswietlKontakty (vector<Kontakt> kontaktyKonkretnegoId)
 {
     system("cls");
 
-    if (!kontakty.empty())
+    if (!kontaktyKonkretnegoId.empty())
     {
-        for (int i=0; i < kontakty.size(); i++)
+        for (int i=0; i < kontaktyKonkretnegoId.size(); i++)
         {
-            if(kontakty[i].iduzytkownika == idZalogowanegoUzytkownika)
-            {
-                cout << "Kontakt " << i+1 << "." << endl;
-                cout << kontakty[i].imie;
-                cout << " " << kontakty[i].nazwisko << endl;
-                cout << kontakty[i].telefon << endl;
-                cout << kontakty[i].email << endl;
-                cout << kontakty[i].adres << endl;
-                cout << kontakty[i].idKontaktu << endl;
-                cout << endl;
-            }
+            cout << "Kontakt " << i+1 << "." << endl;
+            cout << kontaktyKonkretnegoId[i].imie;
+            cout << " " << kontaktyKonkretnegoId[i].nazwisko << endl;
+            cout << kontaktyKonkretnegoId[i].telefon << endl;
+            cout << kontaktyKonkretnegoId[i].email << endl;
+            cout << kontaktyKonkretnegoId[i].adres << endl;
+            cout << kontaktyKonkretnegoId[i].idKontaktu << endl;
+            cout << endl;
         }
     }
 
@@ -496,7 +508,7 @@ void wyswietlKontakty (vector<Kontakt> kontakty, int idZalogowanegoUzytkownika)
 }
 
 
-vector<Kontakt> wczytajDane(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika)
+vector<Kontakt> wczytajDane(vector<Kontakt> kontakty)
 {
     string linia;
     fstream plik;
@@ -546,11 +558,11 @@ vector<Kontakt> wczytajDane(vector<Kontakt> kontakty, int idZalogowanegoUzytkown
     }
 }
 
-bool czyTakiIdistnieje(vector<Kontakt> kontakty, int idDoUsuniecia, int idZalogowanegoUzytkownika)
+bool czyTakiIdistnieje(vector<Kontakt> kontaktyKonkretnegoId, int idDoUsuniecia)
 {
-    for(int i = 0; i < kontakty.size(); i++)
+    for(int i = 0; i < kontaktyKonkretnegoId.size(); i++)
     {
-        if(kontakty[i].idKontaktu == idDoUsuniecia && kontakty[i].iduzytkownika == idZalogowanegoUzytkownika)
+        if(kontaktyKonkretnegoId[i].idKontaktu == idDoUsuniecia)
         {
             return true;
         }
@@ -559,12 +571,12 @@ bool czyTakiIdistnieje(vector<Kontakt> kontakty, int idDoUsuniecia, int idZalogo
 }
 
 
-vector<Kontakt> usunKontakt(vector<Kontakt> kontakty, int idDoUsuniecia, int idZalogowanegoUzytkownika)
+vector<Kontakt> usunKontakt(vector<Kontakt> kontaktyKonkretnegoId, int idDoUsuniecia)
 {
     char choice;
     fstream plik;
 
-    bool validId = czyTakiIdistnieje(kontakty, idDoUsuniecia, idZalogowanegoUzytkownika);
+    bool validId = czyTakiIdistnieje(kontaktyKonkretnegoId, idDoUsuniecia);
 
     system("cls");
 
@@ -574,157 +586,214 @@ vector<Kontakt> usunKontakt(vector<Kontakt> kontakty, int idDoUsuniecia, int idZ
         cin >> choice;
         if(choice == 't')
         {
-            plik.open("pomocniczy.txt", ios::out);
-            if(plik.good())
+            int indexDoUsuniecia = 0;
+            for(int i = 0; i < kontaktyKonkretnegoId.size(); i++)
             {
-                for(int i = 0; i < kontakty.size(); i++)
+                if(kontaktyKonkretnegoId[i].idKontaktu == idDoUsuniecia)
                 {
-                    if(idDoUsuniecia == kontakty[i].idKontaktu && kontakty[i].iduzytkownika == idZalogowanegoUzytkownika)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        plik << kontakty[i].idKontaktu << "|";
-                        plik << kontakty[i].iduzytkownika << "|";
-                        plik << kontakty[i].imie << "|";
-                        plik << kontakty[i].nazwisko << "|";
-                        plik << kontakty[i].telefon << "|";
-                        plik << kontakty[i].email << "|";
-                        plik << kontakty[i].adres << "|" << endl;
-                    }
+                    indexDoUsuniecia = i;
+                    continue;
                 }
-
-                plik.close();
-
-                remove("ksiazka.txt");
-                rename("pomocniczy.txt", "ksiazka.txt");
-
-                int indexDoUsuniecia = 0;
-                for(int i = 0; i < kontakty.size(); i++)
-                {
-                    if(kontakty[i].idKontaktu == idDoUsuniecia && kontakty[i].iduzytkownika == idZalogowanegoUzytkownika)
-                    {
-                        indexDoUsuniecia = i;
-                    }
-                }
-                kontakty.erase(kontakty.begin() + indexDoUsuniecia);
-
-                cout << "Kontakt usuniety!" << endl;
-                Sleep(1000);
-                return kontakty;
             }
-            else
-            {
-                plik.close();
-                cout << "Blad odczytu pliku!" << endl;
-                Sleep(1000);
-                return kontakty;
-            }
+
+            kontaktyKonkretnegoId.erase(kontaktyKonkretnegoId.begin() + indexDoUsuniecia);
+
+            cout << "Kontakt usuniety!" << endl;
+            Sleep(1000);
+            return kontaktyKonkretnegoId;
         }
+
         else
         {
             cout << "Nie usunieto kontaktu!";
             Sleep(1000);
-            return kontakty;
+            return kontaktyKonkretnegoId;
         }
     }
-    else
+
+    else if (!validId)
     {
         cout << "Kontakt o podanym id nie istnieje!";
         Sleep(1000);
-        return kontakty;
+        return kontaktyKonkretnegoId;
     }
 }
 
 
-vector<Kontakt> edytujKontakty(vector<Kontakt> kontakty, int idZalogowanegoUzytkownika)
+vector<Kontakt> edytujKontakty(vector<Kontakt> kontaktyKonkretnegoId)
 {
-    fstream plik;
     string Imie, Nazwisko, Telefon, Adres, Email;
-    int numerKontaktu = kontakty.size();
+    int numerKontaktu = kontaktyKonkretnegoId.size();
     char wybor;
-    int id;
+    int idEdytowanegoKontaktu;
+    fstream plik;
 
     system("cls");
 
     cout << "Podaj id kontaktu" << endl;
-    cin >> id;
+    cin >> idEdytowanegoKontaktu;
 
-    plik.open("ksiazka.txt", ios::out);
-    if(plik.good())
+    for(int i = 0; i < numerKontaktu; i++)
     {
-        for(int i = 0; i < numerKontaktu; i++)
+        if(kontaktyKonkretnegoId[i].idKontaktu == idEdytowanegoKontaktu)
         {
-            if(kontakty[i].idKontaktu == id && kontakty[i].iduzytkownika == idZalogowanegoUzytkownika)
+            cout << "Co chcialbys zedytowac?" << endl;
+            cout << "1. Imie" << endl;
+            cout << "2. Nazwisko" << endl;
+            cout << "3. Numer telefonu" << endl;
+            cout << "4. Email" << endl;
+            cout << "5. Adres" << endl;
+            cout << "9. Powrot" << endl;
+            cin >> wybor;
+
+            if (wybor == '1')
             {
-                cout << "Co chcialbys zedytowac?" << endl;
-                cout << "1. Imie" << endl;
-                cout << "2. Nazwisko" << endl;
-                cout << "3. Numer telefonu" << endl;
-                cout << "4. Email" << endl;
-                cout << "5. Adres" << endl;
-                cout << "9. Powrot" << endl;
-                cin >> wybor;
+                cout << "Aktualne imie to: " << kontaktyKonkretnegoId[i].imie << endl;
+                cout << "Wprowadz nowe imie: ";
+                cin >> Imie;
+                kontaktyKonkretnegoId[i].imie = Imie;
+                cout << "Zaktualizowano" << endl;
+                Sleep(1250);
+            }
 
-                if (wybor == '1')
-                {
-                    cout << "Aktualne imie to: " << kontakty[i].imie << endl;
-                    cout << "Wprowadz nowe imie: ";
-                    cin >> Imie;
-                    kontakty[i].imie = Imie;
-                    plik << kontakty[i].imie;
-                    cout << "Zaktualizowano" << endl;
-                    Sleep(1250);
-                }
-
-                if (wybor == '2')
-                {
-                    cout << "Aktualne nazwisko to: " << kontakty[i].nazwisko << endl;
-                    cout << "Wprowadz nowe nazwisko: ";
-                    cin >> Nazwisko;
-                    kontakty[i].nazwisko = Nazwisko;
-                    plik << kontakty[i].nazwisko;
-                    cout << "Zaktualizowano" << endl;
-                    Sleep(1250);
-                }
-                if (wybor == '3')
-                {
-                    cout << "Aktualny numer to: " << kontakty[i].telefon << endl;
-                    cout << "Wprowadz nowy numer: ";
-                    cin >> Telefon;
-                    kontakty[i].telefon = Telefon;
-                    plik << kontakty[i].telefon;
-                    cout << "Zaktualizowano" << endl;
-                    Sleep(1250);
-                }
-                if (wybor == '4')
-                {
-                    cout << "Aktualny email to: " << kontakty[i].email << endl;
-                    cout << "Wprowadz nowy email: ";
-                    cin >> Email;
-                    kontakty[i].email = Email;
-                    plik << kontakty[i].email;
-                    cout << "Zaktualizowano" << endl;
-                    Sleep(1250);
-                }
-                if (wybor == '5')
-                {
-                    cout << "Aktualny adres to: " << kontakty[i].adres << endl;
-                    cout << "Wprowadz nowy adres: ";
-                    cin >> Adres;
-                    kontakty[i].adres = Adres;
-                    plik << kontakty[i].adres;
-                    cout << "Zaktualizowano" << endl;
-                    Sleep(1250);
-                }
-                if (wybor == '6')
-                {
-                    break;
-                }
+            if (wybor == '2')
+            {
+                cout << "Aktualne nazwisko to: " << kontaktyKonkretnegoId[i].nazwisko << endl;
+                cout << "Wprowadz nowe nazwisko: ";
+                cin >> Nazwisko;
+                kontaktyKonkretnegoId[i].nazwisko = Nazwisko;
+                cout << "Zaktualizowano" << endl;
+                Sleep(1250);
+            }
+            if (wybor == '3')
+            {
+                cout << "Aktualny numer to: " << kontaktyKonkretnegoId[i].telefon << endl;
+                cout << "Wprowadz nowy numer: ";
+                cin >> Telefon;
+                kontaktyKonkretnegoId[i].telefon = Telefon;
+                cout << "Zaktualizowano" << endl;
+                Sleep(1250);
+            }
+            if (wybor == '4')
+            {
+                cout << "Aktualny email to: " << kontaktyKonkretnegoId[i].email << endl;
+                cout << "Wprowadz nowy email: ";
+                cin >> Email;
+                kontaktyKonkretnegoId[i].email = Email;
+                cout << "Zaktualizowano" << endl;
+                Sleep(1250);
+            }
+            if (wybor == '5')
+            {
+                cout << "Aktualny adres to: " << kontaktyKonkretnegoId[i].adres << endl;
+                cout << "Wprowadz nowy adres: ";
+                cin >> Adres;
+                kontaktyKonkretnegoId[i].adres = Adres;
+                cout << "Zaktualizowano" << endl;
+                Sleep(1250);
+            }
+            if (wybor == '6')
+            {
+                break;
             }
         }
     }
-    plik.close();
-    return kontakty;
+
+    return kontaktyKonkretnegoId;
+}
+
+
+vector<Kontakt> wczytajkontaktyKonkretnegoId (vector<Kontakt> kontakty, int idZalogowanegoUzytkownika)
+{
+    vector<Kontakt> kontaktyKonkretnegoId;
+    string linia;
+    fstream plik;
+    Kontakt pojedynczyKontakt;
+
+    plik.open("ksiazka.txt", ios::in);
+
+    if(plik.is_open())
+    {
+        while(getline(plik, linia))
+        {
+            string kontakt[7];
+            int koniecStringa = linia.length();
+            int index = 0;
+            int poczatekWyrazu = 0;
+            int dlugoscWyrazu = 0;
+            int indexKontaktu = 0;
+
+            for(index = 0; index < koniecStringa; index++)
+            {
+                if((int)linia[index] == 124)
+                {
+                    dlugoscWyrazu = index - poczatekWyrazu;
+                    kontakt[indexKontaktu] = linia.substr(poczatekWyrazu, dlugoscWyrazu);
+                    poczatekWyrazu = index + 1;
+                    indexKontaktu++;
+                }
+            }
+            pojedynczyKontakt.idKontaktu = atoi(kontakt[0].c_str());
+            pojedynczyKontakt.iduzytkownika = atoi(kontakt[1].c_str());
+            pojedynczyKontakt.imie = kontakt[2];
+            pojedynczyKontakt.nazwisko = kontakt[3];
+            pojedynczyKontakt.telefon = kontakt[4];
+            pojedynczyKontakt.email = kontakt[5];
+            pojedynczyKontakt.adres = kontakt[6];
+
+            if(pojedynczyKontakt.iduzytkownika == idZalogowanegoUzytkownika)
+            {
+               kontaktyKonkretnegoId.push_back(pojedynczyKontakt);
+            }
+        }
+        plik.close();
+
+        return kontaktyKonkretnegoId;
+    }
+    else
+    {
+        plik.close();
+        return kontaktyKonkretnegoId;
+    }
+}
+
+void aktualizacjaKsiazki(vector<Kontakt> kontaktyKonkretnegoId, int idZalogowanegoUzytkownika, vector<Kontakt> kontakty)
+{
+    fstream plik;
+    vector<Kontakt> pomocniczy;
+
+    system("pause");
+
+    for (int i = 0; i < kontakty.size(); i++)
+    {
+        if(kontakty[i].iduzytkownika == idZalogowanegoUzytkownika)
+        {
+            continue;
+        }
+        else
+            pomocniczy.push_back(kontakty[i]);
+    }
+
+    for (int j = 0; j < kontaktyKonkretnegoId.size(); j++)
+    {
+        pomocniczy.push_back(kontaktyKonkretnegoId[j]);
+    }
+
+    plik.open("ksiazka_tymczasowa.txt", ios::out | ios::app);
+    if(plik.good())
+    {
+        for (int i = 0; i < pomocniczy.size(); i++)
+        {
+            plik << pomocniczy[i].idKontaktu << "|";
+            plik << pomocniczy[i].iduzytkownika << "|";
+            plik << pomocniczy[i].imie << "|";
+            plik << pomocniczy[i].nazwisko << "|";
+            plik << pomocniczy[i].telefon << "|";
+            plik << pomocniczy[i].email << "|";
+            plik << pomocniczy[i].adres << "|" << endl;
+        }
+        plik.close();
+        remove("ksiazka.txt");
+        rename("ksiazka_tymczasowa.txt", "ksiazka.txt");
+    }
 }
